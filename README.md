@@ -77,29 +77,6 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/Beranda.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/Produk.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/detail%20produk.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/daftar%20keranjang%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/checkout%20belanja.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/checkout%20finish.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/login%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/register%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/dashboard%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/pesanan%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/detail%20pesanan%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/konfirmasi%20pembayaran%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/daftar%20wishlists%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/pengaturan%20akun%20customer.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/login%20admin.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/dashboard%20admin.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/manajemen%20kategori.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/manajemen%20produk.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/manajemen%20order%20admin.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/konfirmasi%20pembayaran%20order%20admin.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/laporan%20order%20admin.png" width="400">&nbsp;&nbsp;
-<img src="https://github.com/RifkiCS29/laravel-ecommerce/blob/main/public/img/laporan%20order%20return%20admin.png" width="400">&nbsp;&nbsp;
-
 ## How To Install this Project
 
 - Persiapan
@@ -124,7 +101,7 @@ Langkah-Langkah
     <br>DB_CONNECTION=mysql
     <br>DB_HOST=localhost
     <br>DB_PORT=3306
-    <br>DB_DATABASE=laravel-ecommerce
+    <br>DB_DATABASE=<'database-name'>
     <br>DB_USERNAME=root
     <br>DB_PASSWORD=
 12. Setting QUEUE_CONNECTION agar bisa menjalankan proses queue menjadi QUEUE_CONNECTION=database.

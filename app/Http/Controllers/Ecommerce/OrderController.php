@@ -1064,54 +1064,34 @@ class OrderController extends Controller
         }
     }
 
-    // Curl Telegram
+    //Curl Telegram
     private function getTelegram($url, $params)
     {
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url . $params);
+        curl_setopt($ch, CURLOPT_URL, $url . $params); 
+
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 3);
         $content = curl_exec($ch);
-        if (curl_errno($ch)) {
-            curl_close($ch);
-            return ['ok' => false, 'error' => curl_error($ch)];
-        }
         curl_close($ch);
         return json_decode($content, true);
     }
 
-    private function sendMessage($invoice, $trackingNumber, $reason)
+    private function sendMessage($invoice, $reason)
     {
-        $key = env('TELEGRAM_KEY');
+        $key = env('7797063599:AAGXZqR5TRQG1mDnwT3Q_B7o1p26ECgF1LI'); 
 
-        if (!$key) {
-            return ['ok' => false, 'error' => 'API key missing'];
+        $chat = $this->getTelegram('https://api.telegram.org/'. $key .'/getUpdates', '');
+
+        if ($chat['ok']) {
+            //cukup ambil key 0 atau admin saja untuk mendapatkan chat_id
+            $chat_id = $chat['result'][0]['message']['chat']['id'];
+
+            $text = 'Hai Admin E-Commerce, OrderID '.$invoice.' Melakukan Permintaan Refund Dengan Alasan "'. $reason.'", Silahkan Segera Dicek Ya!';
+        
+            //kirim request ke telegram untuk mengirim pesan
+            return $this->getTelegram('https://api.telegram.org/'. $key .'/sendMessage', '?chat_id=' . $chat_id . '&text=' . $text);
         }
-
-        $chatUpdates = $this->getTelegram('https://api.telegram.org/bot' . $key . '/getUpdates');
-
-        if (!$chatUpdates['ok']) {
-            return ['ok' => false, 'error' => $chatUpdates['error']];
-        }
-
-        if (empty($chatUpdates['result'])) {
-            return ['ok' => false, 'error' => 'No chat updates available'];
-        }
-
-        $lastUpdate = end($chatUpdates['result']);
-        $chat_id = $lastUpdate['message']['chat']['id'];
-        $text = 'Hai Admin E-Commerce, OrderID ' . $invoice . ' dengan Tracking Number ' . $trackingNumber . ' Melakukan Permintaan Refund Dengan Alasan "' . $reason . '", Silahkan Segera Dicek Ya!';
-
-        $sendMessageResponse = $this->getTelegram(
-            'https://api.telegram.org/bot' . $key . '/sendMessage', 
-            '?chat_id=' . $chat_id . '&text=' . urlencode($text)
-        );
-
-        if (!$sendMessageResponse['ok']) {
-            return ['ok' => false, 'error' => $sendMessageResponse['error']];
-        }
-
-        return $sendMessageResponse;
     }
 
 }
