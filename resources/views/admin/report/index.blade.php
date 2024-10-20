@@ -1,119 +1,247 @@
 @extends('layouts.admin')
 
 @section('title')
-    <title>Laporan Order</title>
+    <title>Laporan Pesanan</title>
 @endsection
 
 @section('content')
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-              <div class="col-sm-6">
-                <h1 class="m-0 text-dark">Pesanan</h1>
-              </div><!-- /.col -->
-              <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                  <li class="breadcrumb-item"><a href="{{ route('home') }}">Beranda</a></li>
-                  <li class="breadcrumb-item active">Laporan Pesanan</li>
-                </ol>
-              </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <section class="content">
-        <div class="container">
-            <div class="row">
-                <!-- BAGIAN INI AKAN MENG-HANDLE TABLE LIST PRODUCT  -->
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">Laporan Pesanan</h4>
-                        </div>
-                        <div class="card-body">
-                            @if (session('success'))
-                                <div class="alert alert-success">{{ session('success') }}</div>
-                            @endif
+    <!-- Set Padding & Margin on DataTables -->
+    <style>
+        table.dataTable ul {
+            padding-left: 20px;
+            margin: 0; /* Reset default margin */
+        }
 
-                            @if (session('error'))
-                                <div class="alert alert-danger">{{ session('error') }}</div>
-                            @endif
-                            
-                            <form action="{{ route('report.order') }}" method="get">
-                                <div class="input-group mb-3 col-md-4 float-right">
-                                    <input type="text" id="created_at" name="date" class="form-control">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-secondary" type="submit">Filter</button>
+        table.dataTable ul li {
+            margin-bottom: 5px;
+        }
+    </style>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0 text-dark">Laporan Pesanan</h1>
+                    </div><!-- /.col -->
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Laporan</li>
+                            <li class="breadcrumb-item active">Laporan Pesanan</li>
+                        </ol>
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+        <!-- /.content-header -->
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container">
+                <div class="row">
+                    @if (session('success'))
+                        <div class="alert alert-success">{{ session('success') }}</div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @endif
+                    <!-- BAGIAN INI AKAN MENG-HANDLE TABLE LIST PRODUCT  -->
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Daftar Laporan Pesanan</h4>
+                            </div>
+                            <div class="card-body loader-area">
+                                <div class="d-flex mb-3 justify-content-end">
+                                    {{-- <div class="input-group flex-nowrap" style="width: 36%;">
+                                        <span class="input-group-text" id="basic-addon1"><span class="fa-regular fa-calendar-days"></span></span>
+                                        <input type="text" id="created_at" name="date" class="form-control" aria-describedby="basic-addon1">
+                                    </div> --}}
+                                    <div class="d-flex align-items-center">
+                                        <span style="margin-top: 1px;" class="font-weight-bold mr-2">Filter Tanggal: </span>
+                                        <div id="created_at" class="pull-right" style="background: #fff; cursor: pointer; padding: 3px 10px; border: 1px solid #ccc; width: auto; border-radius: 4px;">
+                                            <i class="fa-regular fa-calendar-days"></i>&nbsp;
+                                            <span></span> <b class="caret"></b>
+                                        </div>
                                     </div>
-                                    <a target="_blank" class="btn btn-primary ml-2" id="exportpdf">Export PDF</a>
+                                    
+                                    <div style="display: none;" id="downloadButton">
+                                        <a target="_blank" class="btn btn-primary btn-sm ml-1" id="exportpdf" title="Export File">Export PDF<i class="fa-regular fa-file-pdf ml-1"></i></a>
+                                        <a target="_blank" class="btn btn-primary btn-sm ml-1" id="exportExcel" title="Download File Excel">Export Excel <i class="fa-solid fa-file-excel ml-1"></i></a>
+                                    </div>
+                                
                                 </div>
-                            </form>
-                            <div class="table-responsive">
-                                <table class="table table-hover table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>InvoiceID</th>
-                                            <th>Pelanggan</th>
-                                            <th>Total</th>
-                                            <th>Status</th>
-                                            <th>Tanggal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($orders as $row)
-                                        <tr>
-                                            <td><strong>{{ $row->invoice }}</strong></td>
-                                            <td>
-                                                <strong>{{ $row->customer_name }}</strong><br>
-                                                <label><strong>Telp:</strong> {{ $row->customer_phone }}</label><br>
-                                                <label><strong>Alamat:</strong> {{ $row->customer_address }} {{ $row->customer->district->name }} - {{  $row->customer->district->city->name}}, {{ $row->customer->district->city->province->name }}</label>
-                                            </td>
-                                            <td>Rp {{ number_format($row->total) }}</td>
-                                            <td>{!! $row->status_label !!}</td>
-                                            <td>{{ $row->created_at->format('d-m-Y') }}</td>
-                                        </tr>
-                                        @empty
-                                        <tr>
-                                            <td colspan="6" class="text-center">Tidak ada data</td>
-                                        </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
+                                <div class="table-responsive">
+                                    <table id="ordersReportTable" class="table" style="width: 100%;">
+                                        <thead>
+                                            <tr>
+                                                <th style="padding: 10px 10px;">#</th>
+                                                <th style="padding: 10px 10px;">Tanggal</th>
+                                                <th style="padding: 10px 10px;" class="text-capitalize">Invoice</th>
+                                                <th style="padding: 10px 10px;" class="text-capitalize">Pelanggan</th>
+                                                <th style="padding: 10px 10px;">Total</th>
+                                                <th style="padding: 10px 10px;">Produk</th>
+                                                <th style="padding: 10px 10px;">Status</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <!-- BAGIAN INI AKAN MENG-HANDLE TABLE LIST CATEGORY  -->
                 </div>
-                <!-- BAGIAN INI AKAN MENG-HANDLE TABLE LIST CATEGORY  -->
             </div>
-        </div>
-    </section>
-  </div>
-  <!-- /.content-wrapper -->
+        </section>
+    </div>
+    <!-- /.content-wrapper -->
+
+    <!-- IMPORTANT LINK -->
+    <a href="{{ route('report.orderGetDatatables') }}" id="reportsOrderGetDatatables"></a>
+    <!-- /IMPORTANT LINK -->
 @endsection
 
 @section('js')
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <script>
         $(document).ready(function() {
+
             let start = moment().startOf('month')
             let end = moment().endOf('month')
 
-            $('#exportpdf').attr('href', '/administrator/reports/reportorder/' + start.format('YYYY-MM-DD') + '+' + end.format('YYYY-MM-DD'))
+            function updateExportLink(start, end) {
+                $('#exportpdf').attr('href', '/administrator/reports/reportorder/' + start.format('YYYY-MM-DD') + '+' + end.format('YYYY-MM-DD'));
+            }
+
+            updateExportLink(start, end);
+
+            function cb(start, end) {
+                $('#created_at span').html(start.locale('id').format('dddd, DD MMMM YYYY') + ' - ' + end.locale('id').format('dddd, DD MMMM YYYY'));
+            }
 
             $('#created_at').daterangepicker({
                 startDate: start,
-                endDate: end
-            }, function(first, last) {
+                endDate: end,
+                locale: {
+                    format: 'dddd, DD MMMM YYYY',
+                    applyLabel: "Terapkan",
+                    cancelLabel: "Batal",
+                    customRangeLabel: "Custom Tanggal",
+                    daysOfWeek: [
+                        "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"
+                    ],
+                    monthNames: [
+                        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+                    ],
+                    firstDay: 1
+                },
+                ranges: {
+                    'Hari Ini': [moment(), moment()],
+                    'Kemarin': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
+                    '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
+                    'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
+                    'Bulan Lalu': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+            }, updateExportLink, cb);
+
+            cb(start, end);
+
+            $.extend($.fn.dataTable.defaults, {
+                autoWidth: false,
+                autoLength: false,
+                dom: '<"datatable-header d-flex justify-content-between align-items-center"lf><t><"datatable-footer"ip>',
+                language: {
+                    search: '<span>Pencarian:</span> _INPUT_',
+                    searchPlaceholder: 'Cari Invoice...',
+                    lengthMenu: '<span class="mr-2">Tampil:</span> _MENU_',
+                    paginate: { 'first': 'First', 'last': 'Last', 'next': '&rarr;', 'previous': '&larr;' },
+                    emptyTable: 'Tidak ada laporan'
+                },
+                initComplete: function() {
+                    var $searchInput = $('#ordersReportTable_filter input').addClass('form-control form-control-sm').attr('placeholder', 'Cari Invoice...');
+                    $searchInput.parent().addClass('d-flex align-items-center');
+
+                    var $lengthMenu = $('#ordersReportTable_length select').addClass('form-control form-control-sm');
+
+                    $lengthMenu.parent().addClass('d-flex align-items-center');
+                    
+                    $('#ordersReportTable_length').addClass('d-flex align-items-center');
+                }
+            });
+
+            var url = $('#reportsOrderGetDatatables').attr('href');
+            var table = $('#ordersReportTable').DataTable({
+                ajax: {
+                    url: url,
+                    data: function(d) {
+                        d.start_date = $('#created_at').data('daterangepicker').startDate.format('dddd, D MMMM YYYY');
+                        d.end_date = $('#created_at').data('daterangepicker').endDate.format('dddd, D MMMM YYYY');
+                    },
+                    beforeSend: function() {
+                        $('.loader-area').block({ 
+                            message: '<i class="fa fa-spinner fa-spin"></i> Loading...', 
+                            overlayCSS: {
+                                backgroundColor: '#fff',
+                                opacity: 0.8,
+                                cursor: 'wait'
+                            },
+                            css: {
+                                border: 0,
+                                padding: 0,
+                                backgroundColor: 'none'
+                            }
+                        });
+                    },
+                    complete: function() {
+                        $('.loader-area').unblock();
+                    }
+                },
+                processing: true,
+                serverSide: true,
+                fnCreatedRow: function(row, data, index) {
+                    var info = table.page.info();
+                    var value = index + 1 + info.start + '.';
+                    $('td', row).eq(0).html(value);
+                },
+                columns: [
+                    {data: null, sortable: false, orderable: false, searchable: false, className: 'text-center align-middle'},
+                    {data: 'formattedDate', name: 'formattedDate', className: 'align-middle'},
+                    {data: 'invoice', name: 'invoice', className: 'font-weight-bold text-uppercase align-middle'},
+                    {data: 'customer_name', name: 'customer_name', className: 'align-middle'},
+                    {data: 'totalProduct', name: 'totalProduct', className: 'align-middle'},
+                    {data: 'details', name: 'details', className: 'align-middle'},
+                    {data: 'statusProduct', name: 'statusProduct', className: 'align-middle'},
+                ],
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50],
+                error: function(xhr, errorType, exception) {
+                    console.log('Ajax error: ' + xhr.status + ' ' + xhr.statusText);
+                }
+            });
+
+            table.on('draw.dt', function() {
+                var PageInfo = $('#ordersReportTable').DataTable().page.info();
+                table.column(0, { page: 'current' }).nodes().each(function(cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start + '.';
+                });
+            });
+
+            $('#created_at').on('apply.daterangepicker', function(ev, picker) {
+                moment.locale('id');
+                // Format the start and end dates using moment.locale
+                let startDate = moment(picker.startDate).locale('id').format('dddd, D MMMM YYYY');
+                let endDate = moment(picker.endDate).locale('id').format('dddd, D MMMM YYYY');
                 
-                $('#exportpdf').attr('href', '/administrator/reports/reportorder/' + first.format('YYYY-MM-DD') + '+' + last.format('YYYY-MM-DD'))
-            })
-        })
+                table.ajax.url('/administrator/reports/order/getDatatables?date=' + startDate + ' - ' + endDate).load();
+                $('#downloadButton').css({ "display" : 'block' });
+            });
+
+        });
     </script>
 @endsection

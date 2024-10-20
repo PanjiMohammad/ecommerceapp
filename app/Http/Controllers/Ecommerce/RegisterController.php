@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Ecommerce;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 use App\Customer;
 use App\User;
 use App\Province;
@@ -24,7 +25,8 @@ class RegisterController extends Controller
 
     public function register(Request $request)
     {    
-        $this->validate($request, [
+
+        $validator = Validator::make($request->all(), [
             'customer_name' => 'required|string|max:100',
             'customer_phone' => 'required',
             'password' => 'required',
@@ -35,8 +37,12 @@ class RegisterController extends Controller
             'district_id' => 'required|exists:districts,id'
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Validasi gagal, harap periksa kembali', 'errors' => $validator->errors(), 'input' => $request->all()], 400);
+        }
+
         if(Customer::where('email', $request->email)->exists()){
-            return redirect()->back()->with(['error' => 'Email Sudah Ada']);
+            return response()->json(['error' => 'Email Sudah Ada'], 409);
         } else {
             try {
                 if (!auth()->guard('customer')->check()) {
@@ -56,10 +62,10 @@ class RegisterController extends Controller
                 if (!auth()->guard('customer')->check()) {
                     Mail::to($request->email)->send(new CustomerRegisterMail($customer, $password));
                 }
-                return redirect()->back()->with(['success' => 'Registrasi Member Berhasil, Silahkan Cek Email.']);
+                return response()->json(['success' => 'Registrasi Member Berhasil, Silahkan Cek Email.'], 200);
 
             } catch (\Exception $e) {
-                return redirect()->back()->with(['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
             }
         }
 

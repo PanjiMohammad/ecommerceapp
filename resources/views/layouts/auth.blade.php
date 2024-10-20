@@ -27,13 +27,48 @@
     @yield('content')
 
 <!-- jQuery -->
-<script src="{{asset('admin-lte/plugins/jquery/jquery.js')}}"></script>
 <script src="{{asset('admin-lte/plugins/jquery/jquery.min.js')}}"></script>
-<script src="{{asset('admin-lte/plugins/jquery/jquery-3.2.1.min.js')}}"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="{{asset('admin-lte/plugins/jquery-ui/jquery-ui.min.js')}}"></script>
+<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+<script>
+  $.widget.bridge('uibutton', $.ui.button)
+</script>
 <!-- Bootstrap 4 -->
 <script src="{{asset('admin-lte/plugins/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+<!-- ChartJS -->
+<script src="{{asset('admin-lte/plugins/chart.js/Chart.min.js')}}"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="{{asset('admin-lte/dist/js/demo.js')}}"></script>
+<!-- daterangepicker -->
+<script src="{{asset('admin-lte/plugins/moment/moment.min.js')}}"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="{{asset('admin-lte/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js')}}"></script>
+<!-- Summernote -->
+<script src="{{asset('admin-lte/plugins/summernote/summernote-bs4.min.js')}}"></script>
+<!-- overlayScrollbars -->
+<script src="{{asset('admin-lte/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js')}}"></script>
 <!-- AdminLTE App -->
-<script src="{{asset('admin-lte/dist/js/adminlte.min.js')}}"></script>
+<script src="{{asset('admin-lte/dist/js/adminlte.js')}}"></script>
+<!-- Block UI -->
+<script src="{{ asset('admin-lte/plugins/block-ui/jquery.blockUI.min.js') }}"></script>
+<!-- Sweet Alert -->
+<script src="{{ asset('admin-lte/plugins/sweetalert2/sweetalert2-new.min.js') }}"></script>
+<!-- Bootbox -->
+<script src="{{ asset('admin-lte/plugins/bootbox/bootbox.min.js') }}"></script>
+<!-- Numeral -->
+<script src="{{ asset('admin-lte/plugins/numeral/numeral.min.js') }}"></script>
+<!-- js read excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
+<!-- Input Mask -->
+<script src="{{ asset('admin-lte/plugins/inputmask/jquery.mask.min.js') }}"></script>
+<!-- DataTable -->
+<script src="{{ asset('admin-lte/plugins/jquery-datatables/jquery.datatables.min.js') }}"></script>
+<!-- Date Range Picker -->
+<script src="{{ asset('admin-lte/plugins/daterangepicker/daterangepicker-new.min.js') }}"></script>
+<!-- Moment -->
+<script src="{{ asset('admin-lte/plugins/moment/moment.min.js') }}"></script>
+
     @yield('js')
 
 </body>

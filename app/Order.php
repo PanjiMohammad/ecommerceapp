@@ -27,7 +27,7 @@ class Order extends Model
 
     public function return()
     {
-        return $this->hasOne(OrderReturn::class);
+        return $this->hasMany(OrderReturn::class);
     }
 
     public function customer()
@@ -52,6 +52,6 @@ class Order extends Model
 
     public function getTotalAttribute()
     {
-        return $this->subtotal + $this->cost;
+        return $this->subtotal + $this->cost + $this->packaging_cost + $this->service_cost;
     }
 }

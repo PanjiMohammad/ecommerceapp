@@ -32,5 +32,10 @@ class AppServiceProvider extends ServiceProvider
         Parameter kedua adalah sumber datanya, maka dalam hal ini adalah CategoryComposer*/
         View::composer('ecommerce.*', 'App\Http\View\CategoryComposer');
         View::composer('layouts.*', 'App\Http\View\CartComposer');
+        View::composer('ecommerce.*', 'App\Http\View\OrderComposer');
+        View::composer('ecommerce.*', 'App\Http\View\WishlistComposer');
+        View::composer('admin.*', 'App\Http\View\WithdrawalComposer');
+
+        require_once app_path('Helpers/SettingsHelper.php');
     }
 }

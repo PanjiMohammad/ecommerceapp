@@ -20,3 +20,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::post('cost', 'Ecommerce\CartController@getCourier');
 Route::get('city', 'Ecommerce\CartController@getCity'); 
 Route::get('district', 'Ecommerce\CartController@getDistrict');
+
+Route::post('payment/notification', 'Ecommerce\OrderController@notificationHandler')->name('customer.paymentNotification');

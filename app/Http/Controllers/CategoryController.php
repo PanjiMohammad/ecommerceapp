@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 use App\Category;
+use DataTables;
+use Carbon\Carbon;
 
 class CategoryController extends Controller
 {
@@ -14,15 +18,31 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $category = Category::with(['parent'])->orderBy('created_at', 'ASC');
-        
-        if (request()->search != '') {
-            $category = $category->where('name', 'LIKE', '%' . request()->search . '%');
-        }
-
         $parent = Category::getParent()->orderBy('name', 'ASC')->get();
-        $category = $category->paginate(10);
-        return view('admin.categories.index', compact('category', 'parent'));
+        return view('admin.categories.index', compact('parent'));
+    }
+
+    public function getDatatables(Request $request){
+        $category = Category::with(['parent'])->orderBy('created_at', 'ASC');
+
+        return DataTables::of($category)
+            ->addColumn('action', function ($cat) {
+                return '
+                    <button type="button" class="btn btn-sm btn-primary edit-category" data-category-id="'. $cat->id .'"><span class="fa fa-pencil"></span></button>
+                    <button type="button" class="btn btn-sm btn-danger delete-category" data-category-id="'. $cat->id .'" data-category-name="' . $cat->name . '"><span class="fa fa-trash"></span></button>
+                    <form id="deleteForm{{ $cat->id }}" action="'. route('category.destroy', $cat->id) .'" method="post" class="d-none">
+                        '. method_field('DELETE') . csrf_field() .'
+                    </form>
+                ';
+            })
+            ->addColumn('parent_name', function ($cat) {
+                return $cat->parent ? $cat->parent->name : '-';
+            })
+            ->editColumn('formattedDate', function($cat) {
+                return Carbon::parse($cat->created_at)->locale('id')->translatedFormat('Y-m-d');
+            })
+            ->rawColumns(['action', 'parent_name', 'formattedDate'])
+            ->make(true);
     }
 
     /**
@@ -43,14 +63,20 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:50|unique:categories'
         ]);
 
-        $request->request->add(['slug' => $request->name]);
-        Category::create($request->except('_token'));
-        return redirect(route('category.index'))->with(['success' => 'Kategori Baru Ditambahkan!']);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $request->request->add(['slug' => Str::slug($request->name)]);
+        $category = Category::create($request->except('_token'));
+
+        return response()->json(['success' => true, 'message' => 'Kategori Baru Ditambahkan', 'category' => $category]);
     }
+
 
     /**
      * Display the specified resource.
@@ -73,8 +99,8 @@ class CategoryController extends Controller
     {
         $category = Category::find($id); 
         $parent = Category::getParent()->orderBy('name', 'ASC')->get(); 
-      
-        return view('admin.categories.edit', compact('category', 'parent'));
+        
+        return response()->json(['category' => $category, 'parent' => $parent]);
     }
 
     /**
@@ -87,17 +113,18 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'name' => 'required|string|max:50|unique:categories,name,' . $id
+            'name' => 'required|string|max:50|unique:categories,name,' . $id,
+            'parent_id' => 'nullable|exists:categories,id'
         ]);
 
-        $category = Category::find($id); 
-        $category->update([
-            'name' => $request->name,
-            'slug' => $request->name,
-            'parent_id' => $request->parent_id
-        ]);
+        $category = Category::findOrFail($id);
+        $category->name = $request->name;
+        $category->slug = Str::slug($request->name);
+        $category->parent_id = $request->parent_id;
+        $category->save();
 
-        return redirect(route('category.index'))->with(['success' => 'Kategori Diperbaharui!']);
+        // Optionally, you can return a JSON response here
+        return response()->json(['success' => true, 'message' => 'Kategori berhasil diperbaharui', 'category' => $category]);
     }
 
     /**
@@ -108,12 +135,19 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        //FUNGSI INI AKAN MEMBENTUK FIELD BARU YANG BERNAMA child_count dan product_count
-        $category = Category::withCount(['child', 'product'])->find($id);
-        if ($category->child_count == 0 && $category->product_count == 0) {
-            $category->delete();
-            return redirect(route('category.index'))->with(['success' => 'Kategori Dihapus!']);
+        try {
+            // FUNGSI INI AKAN MEMBENTUK FIELD BARU YANG BERNAMA child_count dan product_count
+            $category = Category::withCount(['child', 'product'])->findOrFail($id);
+            
+            if ($category->child_count == 0 && $category->product_count == 0) {
+                $category->delete();
+                return response()->json(['success' => true, 'message' => 'Kategori Berhasil Dihapus']);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Kategori Ini Memiliki Anak Kategori atau Produk']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan, silakan coba lagi nanti.'], 500);
         }
-        return redirect(route('category.index'))->with(['error' => 'Kategori Ini Memiliki Anak Kategori atau Produk!']);
     }
+
 }

@@ -10,6 +10,11 @@ class OrderReturn extends Model
 
     protected $appends = ['status_label'];
 
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
     public function getStatusLabelAttribute()
     {
         if ($this->status == 0) {

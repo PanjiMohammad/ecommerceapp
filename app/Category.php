@@ -41,4 +41,9 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public function promo()
+    {
+        return $this->hasMany(Promo::class);
+    }
 }

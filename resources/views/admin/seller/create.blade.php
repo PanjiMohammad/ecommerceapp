@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title')
-    <title>Tambah Produk</title>
+    <title>Tambah Penjual</title>
 @endsection
 
 @section('content')
@@ -11,15 +11,15 @@
     <div class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
-              <div class="col-sm-6">
-                <h1 class="m-0 text-dark">Penjual</h1>
-              </div><!-- /.col -->
-              <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                  <li class="breadcrumb-item"><a href="#">Penjual</a></li>
-                  <li class="breadcrumb-item active">Tambah Penjual</li>
-                </ol>
-              </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <h1 class="m-0 text-dark">Penjual</h1>
+                </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Penjual</a></li>
+                        <li class="breadcrumb-item active">Tambah Penjual</li>
+                    </ol>
+                </div><!-- /.col -->
             </div><!-- /.row -->
         </div><!-- /.container-fluid -->
     </div>
@@ -28,76 +28,100 @@
     <!-- Main content -->
     <section class="content">
         <div class="container">
-            <!-- TAMBAHKAN ENCTYPE="" KETIKA MENGIRIMKAN FILE PADA FORM -->
-            <form action="{{ route('seller.store') }}" method="post" enctype="multipart/form-data" >
-                @csrf
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Tambah Penjual</h4>
-                            </div>
-                            <div class="card-body">
-                                @if (session('success'))
-                                    <div class="alert alert-success">{{ session('success') }}</div>
-                                @endif
+            <div class="row">
+                @if (session('success'))
+                    <div class="alert alert-success">{{ session('success') }}</div>
+                @endif
 
-                                @if (session('error'))
-                                    <div class="alert alert-danger">{{ session('error') }}</div>
-                                @endif
-                                <div class="form-group">
-                                    <label for="name" class="form-label">Nama</label>
-                                    <input type="text" name="name" class="form-control" placeholder="Masukan Nama Lengkap" required>
-                                    <span class="text-danger">{{ $errors->first('name') }}</span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="text" name="email" class="form-control" placeholder="Masukan Email" required>
-                                    <span class="text-danger">{{ $errors->first('email') }}</span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="password" class="form-label">Kata Sandi</label>
-                                    <input type="password" name="password" class="form-control" placeholder="Masukan Kata Sandi" required>
-                                    <p class="text-danger">{{ $errors->first('password') }}</p>
-                                </div>
-                                <div class="form-group">
-                                    <label for="address" class="form-label">Alamat</label>
-                                    <input type="text" class="form-control" id="address" name="address" placeholder="Masukkan Alamat" required>
-                                    <span class="text-danger">{{ $errors->first('address') }}</span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="province_id" class="form-label">Pilih Provinsi</label>
-                                    <select class="form-control" name="province_id" id="province_id" required>
-                                        <option value="">Pilih Provinsi</option>
-                                        <!-- LOOPING DATA PROVINCE UNTUK DIPILIH OLEH CUSTOMER -->
-                                        @foreach ($provinces as $row)
-                                        <option value="{{ $row->id }}">{{ $row->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <span class="text-danger">{{ $errors->first('province_id') }}</span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="city_id" class="form-label">Pilih Kabupaten</label>
-                                    <select class="form-control" name="city_id" id="city_id" required>
-                                        <option value="">Pilih Kabupaten/Kota</option>
-                                    </select>
-                                    <span class="text-danger">{{ $errors->first('city_id') }}</span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="district_id" class="form-label">Pilih Kecamatan</label>
-                                    <select class="form-control" name="district_id" id="district_id" required>
-                                        <option value="">Pilih Kecamatan</option>
-                                    </select>
-                                    <span class="text-danger">{{ $errors->first('district_id') }}</span>
-                                </div>
-                                <div class="form-group float-right">
-                                    <button type="submit" class="btn btn-primary btn-block">Register</button>
+                @if (session('error'))
+                    <div class="alert alert-danger">{{ session('error') }}</div>
+                @endif
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <a href="{{ route('seller.newIndex') }}" style="color: black;"><span class="fa-solid fa-arrow-left"></span> <span class="ml-1">Kembali</span></a>
+                        </div>
+                        <form id="addSellerForm" action="{{ route('seller.store') }}" method="post">
+                            @csrf
+                            <div class="card-body loader-area">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="name" class="form-label">Nama</label>
+                                            <input type="text" name="name" class="form-control" placeholder="Masukan Nama Lengkap">
+                                            <span class="text-danger" id="name_error"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="text" name="email" class="form-control" placeholder="Masukan Email">
+                                            <span class="text-danger" id="email_error"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="phone_number">Nomor Telpon</label>
+                                            <input type="number" name="phone_number" id="phone_number" class="form-control" placeholder="Masukkan Nomor Telpon">
+                                            <span class="text-danger" id="phone_number_error"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="address" class="form-label">Alamat</label>
+                                            <input type="text" class="form-control" id="address" name="address" placeholder="Masukkan Alamat">
+                                            <span class="text-danger" id="address_error"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="gender" class="form-label">Jenis Kelamin</label>
+                                            <select name="gender" id="gender" class="form-control">
+                                                <option value="">Pilih Jenis Kelamin</option>
+                                                <option value="pria">Pria</option>
+                                                <option value="wanita">Wanita</option>
+                                            </select>
+                                            <span class="text-danger" id="gender_error"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="status" class="form-label">Status</label>
+                                            <select name="status" id="status" class="form-control">
+                                                <option value="1">Aktif</option>
+                                                <option value="0">Tidak Aktif</option>
+                                            </select>
+                                            <span class="text-danger" id="status_error"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="province_id" class="form-label">Pilih Provinsi</label>
+                                            <select class="form-control" name="province_id" id="province_id">
+                                                <option value="">Pilih Provinsi</option>
+                                                <!-- LOOPING DATA PROVINCE UNTUK DIPILIH OLEH CUSTOMER -->
+                                                @foreach ($provinces as $row)
+                                                <option value="{{ $row->id }}">{{ $row->name }}</option>
+                                                @endforeach
+                                            </select>
+                                            <span class="text-danger" id="province_id_error"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="city_id" class="form-label">Pilih Kabupaten</label>
+                                            <select class="form-control" name="city_id" id="city_id">
+                                                <option value="">Pilih Kabupaten/Kota</option>
+                                            </select>
+                                            <span class="text-danger" id="city_id_error"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="district_id" class="form-label">Pilih Kecamatan</label>
+                                            <select class="form-control" name="district_id" id="district_id">
+                                                <option value="">Pilih Kecamatan</option>
+                                            </select>
+                                            <span class="text-danger" id="district_id_error"></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                            <div class="card-footer">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary float-right">Simpan</button>
+                                </div>
+                            </div>
+                        </form>    
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     </section>
   </div>
@@ -126,7 +150,7 @@
                         })
                     }
                 });
-            })
+            });
 
             //LOGICNYA SAMA DENGAN CODE DIATAS HANYA BERBEDA OBJEKNYA SAJA
             $('#city_id').on('change', function() {
@@ -142,7 +166,93 @@
                         })
                     }
                 });
-            })
+            });
+
+            $('#addSellerForm').on('submit', function(e){
+                e.preventDefault();
+
+                var formData = $(this).serializeArray();
+                console.log(formData);
+                var actionUrl = $(this).attr('action');
+
+                $.ajax({
+                    url: actionUrl,
+                    method: 'POST',
+                    data: formData,
+                    beforeSend: function() {
+                        $('.loader-area').block({ 
+                            message: '<i class="fa fa-spinner fa-spin"></i> Loading...', 
+                            overlayCSS: {
+                                backgroundColor: '#fff',
+                                opacity: 0.8,
+                                cursor: 'wait'
+                            },
+                            css: {
+                                border: 0,
+                                padding: 0,
+                                backgroundColor: 'none'
+                            }
+                        }); 
+                    },
+                    complete: function() {
+                        $('.loader-area').unblock(); // Hide loader after request complete
+                    },
+                    success: function(response){
+                        Swal.fire({
+                            title: 'Berhasil',
+                            text: response.success,
+                            icon: 'success',
+                            timer: 2000, 
+                            showCancelButton: false,
+                            showConfirmButton: false,
+                            willClose: () => {
+                                window.location.href = "{{ route('seller.newIndex') }}";
+                            }
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        let errors = xhr.responseJSON.errors;
+                        let input = xhr.responseJSON.input;
+
+                        // Clear previous errors
+                        $('.text-danger').text('');
+
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.error) {
+                            errorMessage = xhr.status + ' ' + xhr.statusText + ': ' + response.error;
+                        }
+                        Swal.fire({
+                            title: 'Gagal',
+                            text: errorMessage,
+                            icon: 'error',
+                            timer: 2000,
+                            showCancelButton: false,
+                            showConfirmButton: false,
+                            willClose: () => {
+                                // Display validation errors using SweetAlert
+                                let errorMessage = '';
+                                $.each(errors, function(key, error) {
+                                    errorMessage += error[0] + '<br>';
+                                    $('#' + key + '_error').text(error[0]);
+
+                                    $('#' + key).addClass('input-error');
+
+                                    // Set timeout to clear the error text after 3 seconds
+                                    setTimeout(function() {
+                                        $('#' + key + '_error').text('');
+                                        $('#' + key).removeClass('input-error');
+                                    }, 3000);
+                                });
+
+                                // Retain input values
+                                $.each(input, function(key, value) {
+                                    $('#' + key).val(value);
+                                });
+                            }
+                        });
+                    }
+                })
+            });
 
         });
     </script>

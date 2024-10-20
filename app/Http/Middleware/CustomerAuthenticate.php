@@ -16,7 +16,7 @@ class CustomerAuthenticate
     public function handle($request, Closure $next)
     {
         if (!auth()->guard('customer')->check()) {
-            return redirect(route('customer.login'));
+            return redirect(route('customer.login'))->with('error', 'Sesi anda sudah berakhir, silahkan login kembali.');
         }
 
         return $next($request);

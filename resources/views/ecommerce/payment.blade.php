@@ -4,128 +4,334 @@
     <title>Konfirmasi Pembayaran - Ecommerce</title>
 @endsection
 
-@section('css')
-    <link rel="stylesheet" href="{{ asset('css/bootstrap-datepicker.min.css') }}">
-@endsection
-
 @section('content')
     <!--================Home Banner Area =================-->
-	<section class="banner_area">
-		<div class="banner_inner d-flex align-items-center">
-			<div class="container">
-				<div class="banner_content text-center">
-					<h2>Konfirmasi Pembayaran</h2>
-					<div class="page_link">
-                        <a href="{{ url('/') }}">Home</a>
+    <section class="banner_area">
+        <div class="banner_inner d-flex align-items-center">
+            <div class="container">
+                <div class="banner_content text-center">
+                    <h2>Konfirmasi Pembayaran</h2>
+                    <div class="page_link">
+                        <a href="{{ url('/') }}">Dashboard</a>
                         <a href="{{ route('customer.orders') }}">Konfirmasi Pembayaran</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-	<!--================End Home Banner Area =================-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--================End Home Banner Area =================-->
 
-	<!--================Login Box Area =================-->
-	<section class="login_box_area p_120">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-3">
-					@include('layouts.ecommerce.module.sidebar')
-				</div>
-				<div class="col-md-9">
-                    <div class="row">
-						<div class="col-md-12">
-                            @if (session('success')) 
-                                <div class="alert alert-success">{{ session('success') }}</div>
-                            @endif
-                            @if (session('error')) 
-                                <div class="alert alert-danger">{{ session('error') }}</div>
-                            @endif
-							<div class="card">
-                                <div class="card-header">
-                                    <h4 class="card-title">Konfirmasi Pembayaran</h4>
+    <!--================Login Box Area =================-->
+    <section class="login_box_area p_100">
+        <div class="container">
+            @if (session('success'))
+                <input type="hidden" id="success-message" value="{{ session('success') }}">
+            @endif
+
+            @if (session('error'))
+                <input type="hidden" id="error-message" value="{{ session('error') }}">
+            @endif
+
+            <p>Total Tagihan : {{ 'Rp ' . number_format($order->total, 0, ',', '.') }}</p>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title mt-3">Info Produk</h3>
+                        </div>
+                        <div class="card-body">
+                            @foreach($order->details as $detail)
+                                <input type="hidden" name="invoice" value="{{ $order->invoice }}">
+                                <input type="hidden" id="product_id" name="product_id" value="{{ $detail->product_id }}">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa fa-user mr-1" style="font-size: 12px"></i>
+                                    <span class="ml-1">{{ 'Penjual : ' . $detail->product->seller_name }}</span>
                                 </div>
-                                <div class="card-body">
-                                    @if($order->status == 0)
-                                    <form action="{{ route('customer.savePayment') }}" enctype="multipart/form-data" method="post">
-                                        @csrf
-                                        <div class="form-group">
-                                            <label for="">Invoice ID</label>
-                                            <input type="text" name="invoice" class="form-control text-uppercase" value="{{ $order->invoice }}"  required readonly>
-                                            <p class="text-danger">{{ $errors->first('invoice') }}</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="">Nama Pengirim</label>
-                                            <input type="text" name="name" class="form-control" value="{{ $order->customer_name }}" required>
-                                            <p class="text-danger">{{ $errors->first('name') }}</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="">Transfer Ke</label>
-                                            <select name="transfer_to" class="form-control" required>
-                                                <option value="">Pilih</option>
-                                                <option value="BCA - 1234567">BCA: 1234567 a.n Panji Mohammad</option>
-                                                <option value="Mandiri - 2345678">Mandiri: 2345678 a.n Panji Mohammad</option>
-                                                <option value="BRI - 9876543">BRI: 9876543 a.n Panji Mohammad</option>
-                                                <option value="BNI - 6789456">BNI: 6789456 a.n Panji Mohammad</option>
-                                            </select>
-                                            <p class="text-danger">{{ $errors->first('transfer_to') }}</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="">Jumlah Transfer</label>
-                                            <input type="number" name="amount" class="form-control" placeholder="Masukkan Jumlah Nominal" required>
-                                            <p class="text-capitalize">Jumlah Nominal: <span class="nominal">{{ $order->total }}</span></p>
-                                            <span class="text-danger">{{ $errors->first('amount') }}</span>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="">Tanggal Transfer</label>
-                                            <input type="text" name="transfer_date" id="transfer_date" class="form-control" placeholder="Masukkan Tanggal" required>
-                                            <p class="text-danger">{{ $errors->first('transfer_date') }}</p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="">Bukti Transfer</label>
-                                            <input type="file" name="proof" class="form-control" required>
-                                            <p class="text-danger">{{ $errors->first('proof') }}</p>
-                                        </div>
-                                        <div class="form-group float-right">
-                                            <button class="btn btn-primary btn-md">Konfirmasi</button>
-                                        </div>
-                                    </form>
-                                    @endif
+                                <div class="d-flex align-items-center">
+                                    <div style="height: 110px; width: 110px; display: block; border: 1px solid transparent;">
+                                        <img class="image-product-detail" src="{{ asset('/products/' . $detail->product->image) }}" alt="{{ $detail->product->name }}">
+                                    </div>
+                                    <div class="d-flex flex-column ml-3">
+                                        <span class="font-weight-bold mb-1">{{ $detail->product->name }}</span>
+                                                <span class="mb-1">{{ $detail->qty . ' item x Rp ' . number_format($detail->price, 0, ',', '.') }}</span>
+                                        @php
+                                            $weight = $detail->weight;
 
-                                    @if($order->status != 0)
-                                        <p class="text-center">Anda Sudah Melakukan Pembayaran</p>
-                                    @endif
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
+                                            if (strpos($weight, '-') !== false) {
+                                                // If the weight is a range, split it into an array
+                                                $weights = explode('-', $weight);
+                                                $minWeight = (float) trim($weights[0]);
+                                                $maxWeight = (float) trim($weights[1]);
+
+                                                // Check if the weights are >= 1000 to display in Kg
+                                                $minWeightDisplay = $minWeight >= 1000 ? ($minWeight / 1000) : $minWeight;
+                                                $maxWeightDisplay = $maxWeight >= 1000 ? ($maxWeight / 1000) . ' Kg' : $maxWeight . ' gram / pack';
+
+                                                // Construct the display string
+                                                $weightDisplay = $minWeightDisplay . ' - ' . $maxWeightDisplay;
+                                            } else {
+                                                // Single weight value
+                                                $weightDisplay = $weight >= 1000 ? ($weight / 1000) . ' Kg' : $weight . ' gram / pack';
+                                            }
+                                        @endphp
+                                        <span class="mb-1">{{ $weightDisplay }}</span>
+                                        <span class="mb-1">{{ 'Kurir : ' . $detail->shipping_service }}</span>
+                                    </div>
+                                </div>
+                                <hr>
+                            @endforeach
+                        </div>
+                        <div class="card-footer">
+                            @if($snapToken)
+                                <button id="pay-button" class="btn btn-primary btn-sm float-right">Bayar Sekarang</button>
+                            @else
+                                <span class="text-center text-danger">* Pembayaran tidak bisa diproses untuk sementara waktu, silahkan buat pesanan baru atau silakan menghubungi dukungan pelanggan.</span>
+                            @endif
+                        </div>
+                    </div>
+                    {{-- <div class="info-product-detail">
+                        <h3>Info Produk</h3>
+                        <hr>
+                        @foreach($order->details as $detail)
+                            <input type="hidden" name="invoice" value="{{ $order->invoice }}">
+                            <input type="hidden" id="product_id" name="product_id" value="{{ $detail->product_id }}">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fa fa-user mr-1" style="font-size: 12px"></i>
+                                <span class="ml-1">{{ 'Penjual : ' . $detail->product->seller_name }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div style="height: 125px; width: 125px; display: block; border: 1px solid transparent;">
+                                    <img class="image-product-detail" src="{{ asset('/products/' . $detail->product->image) }}" alt="{{ $detail->product->name }}">
+                                </div>
+                                <div class="d-flex flex-column ml-3">
+                                    <span class="font-weight-bold mb-1">{{ $detail->product->name }}</span>
+                                            <span class="mb-1">{{ $detail->qty . ' item x Rp ' . number_format($detail->price, 0, ',', '.') }}</span>
+                                    @php
+                                        $weight = $detail->weight;
+
+                                        if (strpos($weight, '-') !== false) {
+                                            // If the weight is a range, split it into an array
+                                            $weights = explode('-', $weight);
+                                            $minWeight = (float) trim($weights[0]);
+                                            $maxWeight = (float) trim($weights[1]);
+
+                                            // Check if the weights are >= 1000 to display in Kg
+                                            $minWeightDisplay = $minWeight >= 1000 ? ($minWeight / 1000) : $minWeight;
+                                            $maxWeightDisplay = $maxWeight >= 1000 ? ($maxWeight / 1000) . ' Kg' : $maxWeight . ' gram / pack';
+
+                                            // Construct the display string
+                                            $weightDisplay = $minWeightDisplay . ' - ' . $maxWeightDisplay;
+                                        } else {
+                                            // Single weight value
+                                            $weightDisplay = $weight >= 1000 ? ($weight / 1000) . ' Kg' : $weight . ' gram / pack';
+                                        }
+                                    @endphp
+                                    <span class="mb-1">{{ $weightDisplay }}</span>
+                                    <span class="mb-1">{{ 'Kurir : ' . $detail->shipping_service }}</span>
+                                </div>
+                            </div>
+                            <hr>
+                        @endforeach
+                        <div class="row">
+                            <div class="col-md-12">
+                                
+                            </div>
+                        </div>
+                    </div> --}}
+                </div>
+                <div class="col-md-4">
+                    @php 
+                    
+                        $serviceCost = 1000;
+                        $packagingCost = 1000;
+                        $subtotal = $order->subtotal;
+                        $cost = $order->cost;
+                        $grandTotal = $cost + $subtotal + $serviceCost + $packagingCost;
+                    
+                    @endphp
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fa-regular fa-credit-card" style="font-size: 25px;"></i>
+                                <span class="ml-2 font-weight-bold" style="font-size: 18px;">Rincian Pembayaran</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mb-2">Subtotal {{ '(' . $order->details->count() . ' item)' }}</span>
+                                <span class="mb-2">{{ 'Rp ' . number_format($order->subtotal, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mb-2">Ongkos Kirim</span>
+                                <span class="mb-2">{{ 'Rp ' . number_format($order->cost, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mb-2">Biaya Layanan</span>
+                                <span class="mb-2">{{ 'Rp ' . number_format($order->service_cost, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="mb-2">Biaya Kemasan {{ '(' . $order->details->count('seller_id') . ' penjual)' }}</span>
+                                <span class="mb-2">{{ 'Rp ' . number_format($order->packaging_cost, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span class="mb-2 font-weight-bold">Total Tagihan</span>
+                                <span class="mb-2 font-weight-bold">{{ 'Rp ' . number_format($order->total, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- <div class="info-payment-detail">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fa-regular fa-credit-card" style="font-size: 25px;"></i>
+                            <span class="ml-2 font-weight-bold" style="font-size: 18px;">Rincian Pembayaran</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="mb-2">Subtotal {{ '(' . $order->details->count() . ' item)' }}</span>
+                            <span class="mb-2">{{ 'Rp ' . number_format($order->subtotal, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="mb-2">Ongkos Kirim</span>
+                            <span class="mb-2">{{ 'Rp ' . number_format($order->cost, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="mb-2">Biaya Layanan</span>
+                            <span class="mb-2">{{ 'Rp ' . number_format($order->service_cost, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="mb-2">Biaya Kemasan {{ '(' . $order->details->count('seller_id') . ' penjual)' }}</span>
+                            <span class="mb-2">{{ 'Rp ' . number_format($order->packaging_cost, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+                    <div class="info-payment-detail-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="mb-2 font-weight-bold">Total Tagihan</span>
+                            <span class="mb-2 font-weight-bold">{{ 'Rp ' . number_format($order->total, 0, ',', '.') }}</span>
+                        </div>
+                    </div> --}}
+                </div>
+            </div>
+        </div>
+    </section>
 @endsection
 
 @section('js')
-    <script src="{{ asset('js/bootstrap-datepicker.min.js') }}"></script>
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
     <script>
         $(document).ready(function() {
 
-            $('#transfer_date').datepicker({
-                "todayHighlight": true,
-                "setDate": new Date(),
-                "autoclose": true
-            })
+            // session
+            var successMessage = $('#success-message').val();
+            var errorMessage = $('#error-message').val();
 
-            var nominal = '{{ $order->total }}';
-            console.log(nominal)
-            const formatTotal = new Intl.NumberFormat("id-ID", {
-                style: "currency", 
-                currency: "IDR",
-                maximumSignificantDigits: "3"
-            }).format(nominal)
-            console.log(JSON.stringify(formatTotal))
-            $('.nominal').text(formatTotal)
+            if (successMessage) {
+				$.toast({
+					heading: 'Berhasil',
+					text: successMessage,
+					showHideTransition: 'slide',
+					icon: 'success',
+					position: 'top-right',
+					hideAfter: 3000
+				});
+            }
+
+            if (errorMessage) {
+				$.toast({
+					heading: 'Gagal',
+					text: errorMessage,
+					showHideTransition: 'fade',
+					icon: 'error',
+					position: 'top-right',
+					hideAfter: 3000
+				});
+            }
+
+            // bayar
+            var payButton = document.getElementById('pay-button');
+            payButton.addEventListener('click', function () {
+
+                var snapToken = "{{ $snapToken }}";
+
+                if (!snapToken) {
+                    alert("Snap token is missing. Please try again.");
+                    return; // Stop further execution if snapToken is missing
+                }
+                // If the payment is pending, reopen the Snap popup automatically
+                snap.pay(snapToken, {
+                    onSuccess: function(result) {
+                        console.log(result);
+                        $.toast({
+                            heading: 'Berhasil',
+                            text: 'Pembayaran Berhasil',
+                            showHideTransition: 'fade',
+                            icon: 'success',
+                            position: 'top-right',
+                            hideAfter: 3000
+                        });
+                        setTimeout(function() {
+                            window.location.href = "{{ route('customer.view_order', ['invoice' => $order->invoice]) }}";
+                        }, 1000);
+                    },
+                    onPending: function(result) {
+                        console.log(result);    
+                        $.toast({
+                            heading: 'Menunggu',
+                            text: 'Pembayaran Belum Selesai, harap selesaikan terlebih dahulu.',
+                            showHideTransition: 'fade',
+                            icon: 'info',
+                            position: 'top-right',
+                            hideAfter: 3000
+                        });
+                    },
+                    onError: function(result) {
+                        console.log(result);
+                        $.toast({
+                            heading: 'Gagal',
+                            text: 'Pembayaran Gagal',
+                            showHideTransition: 'fade',
+                            icon: 'error',
+                            position: 'top-right',
+                            hideAfter: 3000
+                        });
+                    },
+                    onClose: function() {
+                        $.toast({
+                            heading: 'Pemberitahuan',
+                            text: 'Anda menutup popup tanpa menyelesaikan pembayaran',
+                            showHideTransition: 'fade',
+                            icon: 'warning',
+                            position: 'top-right',
+                            hideAfter: 3000
+                        });
+                    }
+                });
+            });
 
         });
     </script>
+@endsection
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/bootstrap-datepicker.min.css') }}">
+    <style>
+        .info-product-detail {
+            border: 1px solid #ededed;
+            padding: 20px;
+            border-radius: 4px;
+        }
+        .image-product-detail {
+            height: 100%;
+            width: 100%;
+            object-fit: contain;
+            border-radius: 5px;
+        }
+        .info-payment-detail {
+            padding: 15px 20px 10px;
+            background-color: #ededed;
+            border: 1px solid #ededed;
+        }
+        .info-payment-detail-2 {
+            padding: 15px 20px 10px;
+            background-color: white;
+            border: 1px solid #ededed;
+        }
+    </style>    
 @endsection

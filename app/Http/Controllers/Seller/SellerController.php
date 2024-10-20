@@ -13,9 +13,11 @@ use App\Product;
 use App\Category;
 use App\User;
 use App\Seller;
+use App\SellerWithdrawal;
 use App\Province;
 use App\OrderDetail;
-
+use DataTables;
+use Carbon\Carbon;
 
 class SellerController extends Controller
 {
@@ -51,64 +53,123 @@ class SellerController extends Controller
 
     public function index()
     {
-        $orders = Order::selectRaw('id,
-            COALESCE(sum(CASE WHEN status = 4 THEN cost END), 0) as shippingCost, 
-            COALESCE(sum(CASE WHEN status = 4 THEN subtotal + cost END), 0) as turnover, 
-            COALESCE(count(CASE WHEN status = 0 THEN subtotal END), 0) as newOrder,
-            COALESCE(count(CASE WHEN status = 2 THEN subtotal END), 0) as processOrder,
-            COALESCE(count(CASE WHEN status = 3 THEN subtotal END), 0) as shipping,
-            COALESCE(count(CASE WHEN status = 4 THEN subtotal END), 0) as completeOrder')->groupBy('id')->get();
-        
-        // convert to array
-        $order_id = [];
-        foreach($orders as $row){
-            $order_id[] = $row['id'];
-        }
+        $sellerId = Auth::guard('seller')->user()->id;
 
-        $detailOrder = OrderDetail::whereIn('order_id', $order_id)->get();
+        $detailOrder = OrderDetail::selectRaw('
+            COALESCE(SUM(CASE WHEN status = 6 THEN (price * qty + (price * qty * 0.10) + shipping_cost) END), 0) AS turnover, 
+            COALESCE(COUNT(CASE WHEN status = 0 THEN price * qty END), 0) AS newOrder,
+            COALESCE(COUNT(CASE WHEN status = 3 THEN price * qty END), 0) AS processOrder,
+            COALESCE(COUNT(CASE WHEN status = 4 THEN price * qty END), 0) AS shipping,
+            COALESCE(COUNT(CASE WHEN status = 5 THEN (price * qty + (price * qty * 0.10) + shipping_cost) END), 0) AS arriveOrder,
+            COALESCE(COUNT(CASE WHEN status = 6 THEN price * qty END), 0) AS completeOrder')
+            ->where('seller_id', $sellerId)
+            ->get();
 
-        $groups = $detailOrder->where('seller_id', auth()->guard('seller')->user()->id)->groupBy('order_id');
+        // get total omset
+        $totalOmset = SellerWithdrawal::where('seller_id', $sellerId)
+            ->where('status', 'disetujui')
+            ->sum('amount');
 
-        // get order id by seller id
-        $temp = [];
-        foreach ($detailOrder as $row) {
-            $temp[] = $row['order_id'];
-        }  
-
-        if($temp != null){
-            // get cost
-            foreach($orders as $row){
-                $shippingCost = $row['turnover'];
-            }
-
-            // count quantity & harga produk
-            $groupwithcount = $groups->map(function ($group) {
-                return [
-                    'id' => $group->first()['order_id'],
-                    'kuantiti' => $group->sum('qty'),
-                    'harga' => $group->sum('price'),
-                ];
-            });
-
-            // get subtotal (kuantiti dikali harga)
-            $subtotal = $groupwithcount->sum(function($q){
-                return $q['kuantiti'] * $q['harga'];
-            });
-
-            // get total omset
-            $totalOmset = collect([$shippingCost, $subtotal])->pipe(function($q){
-                return $q[0] - $q[1];
-            });
-        } else {
-            $totalOmset = '0';
-        }
-       
         $customers = Customer::get();
         $categories = Category::get();
-        $products = Product::where('seller_id', auth()->guard('seller')->user()->id)->get();
+        $products = Product::where('seller_id', $sellerId)->get();
+
+        // $topSelling = DB::table('order_items')
+        //     ->select('product_id', DB::raw('SUM(quantity) as total_sales'))
+        //     ->join('products', 'order_items.product_id', '=', 'products.id')
+        //     ->where('products.seller_id', $sellerId)
+        //     ->groupBy('product_id')
+        //     ->orderBy('total_sales', 'desc')
+        //     ->limit(5) // Limit to top 5 products
+        //     ->get();
+
+        $topSelling = OrderDetail::with(['product' => function ($query) use ($sellerId) {
+            $query->where('seller_id', $sellerId);
+        }])
+            ->select(
+                'product_id', 
+                DB::raw('SUM(qty) as total_sales'),
+                DB::raw('COUNT(qty) as totalSales')
+            )
+            ->where('seller_id', $sellerId)
+            ->groupBy('product_id')
+            ->orderBy('total_sales', 'desc')
+            ->limit(5)
+            ->get();
         
-        return view('seller.home', compact('orders','customers', 'categories', 'products', 'totalOmset'));
+        // Prepare data for Highcharts
+        $chartDataTopSelling = $topSelling->map(function($orderDetail) {
+            return [
+                'name' => $orderDetail->product->category->name,
+                'y' => (float)$orderDetail->total_sales,
+            ];
+        });
+
+        $dataTopSelling = $topSelling->map(function($orderDetail) {
+            return [
+                'name' => $orderDetail->product->name,
+                'image' => $orderDetail->product->image,
+                'stok' => $orderDetail->product->stock,
+                'sales' => $orderDetail->total_sales,
+            ];
+        });
+
+        $orders = Order::with([
+            'details' => function($q) use ($sellerId){
+                $q->where('seller_id', $sellerId)->where('status', 6);
+            }
+        ])
+        ->whereHas('details', function($query) use ($sellerId){
+            $query->where('seller_id', $sellerId)->where('status', 6);
+        })
+        ->get();
+
+        // Prepare data for Highcharts (e.g., sales per month)
+        $monthlySales = $orders->flatMap(function($order) {
+            return $order->details->map(function($detail) {
+                return [
+                    'month' => Carbon::parse($detail->created_at)->locale('id')->translatedFormat('F'),
+                    'total' => ($detail->qty * $detail->price) + 1000 + 1000 + $detail->shipping_cost
+                ];
+            });
+        })->groupBy('month')->map(function ($monthDetails) {
+            return $monthDetails->sum('total');
+        });
+
+        $minProduct = Product::where('seller_id', auth()->guard('seller')->user()->id)->where('stock', '<=', 50)->get();
+        
+        return view('seller.home', compact('customers', 'categories', 'products', 'detailOrder', 'orders', 'monthlySales', 'totalOmset', 'chartDataTopSelling', 'dataTopSelling'));
     }
+
+    public function getDatatablesIndex(Request $request){
+        // Fetch orders with details having status 0 for the logged-in seller
+        $newOrders = Order::with(['details' => function ($query) {
+            $query->where('status', 0)
+                  ->where('seller_id', auth()->guard('seller')->user()->id);
+        }])->get();
+    
+        // Flatten the orders and details into a single collection
+        $detailsCollection = $newOrders->flatMap(function ($order) {
+            return $order->details->map(function ($detail) use ($order) {
+                return [
+                    'date' => Carbon::parse($detail->created_at)->locale('id')->translatedFormat('l, d F Y H:i'),
+                    'invoice' => $order->invoice,
+                    'customer_name' => $order->customer_name,
+                    'product' => $detail->product->name,
+                    'total' => 'Rp ' . number_format($detail->qty * $detail->price, 0, ',', '.'),
+                    'status' => $detail->status_label,
+                    'status_display' => '<span class="badge badge-light">' . $detail->status_label . '</span>',
+                    'action' => '
+                        <a href="' . route('orders.newView', $order->invoice) . '" class="btn btn-sm btn-primary">Detail <span class="fa fa-eye ml-1"></span></a>
+                    ',
+                ];
+            });
+        });
+    
+        return DataTables::of($detailsCollection)
+                ->rawColumns(['status_display','action']) // Ensure HTML is not escaped in action column
+                ->make(true);
+    }      
 
     /**
      * Show the form for creating a new resource.
@@ -212,8 +273,7 @@ class SellerController extends Controller
             'district_id' => 'required|exists:districts,id',
             'password' => 'nullable|string'
         ]);
-
-
+        
         // $user = auth()->guard('customer')->user();
 
         $customer = Customer::find($id);
@@ -258,21 +318,26 @@ class SellerController extends Controller
 
     public function postAccountSetting(Request $request, $id)
     {
-        $this->validate($request, [
-            'name' => 'required|string|max:100',
-            'phone_number' => 'required|max:15',
-            'address' => 'required|string',
-            'district_id' => 'required|exists:districts,id',
-            'password' => 'nullable|string|min:5'
-        ]);
-
-        $user = Auth::guard('seller')->user();
-        $data = $request->only('name', 'phone_number', 'address', 'district_id');
-
-        if ($request->password != '') {
-            $data['password'] = $request->password;
+        try {
+            $this->validate($request, [
+                'name' => 'required|string|max:100',
+                'phone_number' => 'required|max:15',
+                'address' => 'required|string',
+                'district_id' => 'required|exists:districts,id',
+                'password' => 'nullable|string|min:5'
+            ]);
+    
+            $user = Auth::guard('seller')->user();
+            $data = $request->only('name', 'phone_number', 'address', 'district_id');
+    
+            if ($request->password != '') {
+                $data['password'] = $request->password;
+            }
+            $user->update($data);
+            
+            return response()->json(['success' => true, 'message' => 'Profil berhasil diperbarui'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-        $user->update($data);
-        return redirect()->back()->with(['success' => 'Profil berhasil diperbaharui']);
     }
 }

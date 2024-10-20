@@ -22,5 +22,9 @@ class Seller extends Authenticatable
         return $this->belongsTo(District::class);
     }
 
+    public function withdrawals()
+    {
+        return $this->hasMany(SellerWithdrawal::class);
+    }
 
 }
