@@ -101,7 +101,7 @@ Langkah-Langkah
     <br>DB_CONNECTION=mysql
     <br>DB_HOST=localhost
     <br>DB_PORT=3306
-    <br>DB_DATABASE=<'database-name'>
+    <br>DB_DATABASE=<'database-kamu'>
     <br>DB_USERNAME=root
     <br>DB_PASSWORD=
 12. Setting QUEUE_CONNECTION agar bisa menjalankan proses queue menjadi QUEUE_CONNECTION=database.
@@ -118,7 +118,7 @@ Langkah-Langkah
     <br>RUANGAPI_KEY=TOKEN_RUANG_API_KAMU
 16. Jalankan perintah <b>php artisan migrate</b>. Cek di phpmyadmin, seharusnya tabel sudah muncul.
 17. Jalankan perintah <b>php artisan db:seed</b> untuk mengisi tabel users, provinces, cities, districts. Berikut email dan password untuk login admin pada http://localhost:8000/login
-    <br>EMAIL = rifki@admin.com
+    <br>EMAIL = panji@admin.com
     <br>PASSWORD = admin
 18. Jalankan perintah <b>php artisan storage:link</b>    
 19. Setelah selesai, Jalankan perintah <b>php artisan serve</b> maka dapat diakses dengan http://localhost:8000/
@@ -126,4 +126,4 @@ Langkah-Langkah
 21. Register Customer dapat diakses dengan http://localhost:8000/member/register
 22. Ketika sudah import excel pada saat hendak mass upload, jalankan perintah <b>php artisan queue:work</b> agar data diimport ke table products.
 
-SEKIAN PENJELASAN DARI SAYA, TERIMAKASIH. Created by <b>RIFKI</b>
+SEKIAN PENJELASAN DARI SAYA, TERIMAKASIH. Created by <b>Panji Mohammad</b>
